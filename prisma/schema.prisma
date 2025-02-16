@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id            String  @id @default(uuid())
+  name          String  @unique
+  results       Result[]
+  games         PlayerGame[]
+  data          Data[]
+}
+
+model Rule {
+  id    String      @id @default(uuid())
+  name  String      @unique
+  games Game[]
+}
+
+model Game {
+  id            String          @id @default(uuid())
+  recordedDate      DateTime    @default(now())
+  rule          Rule            @relation(fields: [ruleId], references: [id])
+  ruleId        String
+  rounds        Round[]
+  players       PlayerGame[]
+  result        Result[]
+}
+
+model Round {
+  id            String  @id @default(uuid())
+  gameId        String
+  game          Game    @relation(fields: [gameId], references: [id])
+  roundNumber   Int
+  honba         Int
+  kyoutaku      Int
+  results       Data[]
+}
+
+model Result {
+  id            String  @id @default(uuid())
+  playerId        String
+  player          Player  @relation(fields: [playerId], references: [id])
+  rank          Int
+  rawScore      Int
+  scaledScore   Int
+  gameId    String
+  game      Game        @relation(fields: [gameId], references: [id])
+}
+
+model Data {
+  id            String  @id @default(uuid())
+  playerId      String
+  player        Player  @relation(fields: [playerId], references: [id])
+  roundId       String
+  round         Round   @relation(fields: [roundId], references: [id])
+  scoreChange   Int
+  state         String
+  result        String
+}
+
+
+model PlayerGame {
+  id        String      @id @default(uuid())
+  seet      Int
+  playerId  String
+  player    Player      @relation(fields: [playerId], references: [id])
+  gameId    String
+  game      Game        @relation(fields: [gameId], references: [id])
+}
