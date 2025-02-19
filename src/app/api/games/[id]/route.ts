@@ -6,6 +6,7 @@ type RouteParams = {
         id: string;
     };
 };
+export const revalidate = 0;
 export const GET = async (req: NextRequest, routeParams: RouteParams) => {
     try {
         const id = routeParams.params.id;
