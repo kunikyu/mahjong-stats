@@ -13,17 +13,23 @@ model Player {
   results       Result[]
   games         PlayerGame[]
   data          Data[]
+  oya           Round[]
 }
 
 model Rule {
-  id    String      @id @default(uuid())
-  name  String      @unique
-  games Game[]
+  id            String      @id @default(uuid())
+  name          String      @unique
+  length        Int
+  startScore    Int
+  returnScore   Int
+  uma1          Int
+  uma2          Int
+  games         Game[]
 }
 
 model Game {
   id            String          @id @default(uuid())
-  recordedDate      DateTime    @default(now())
+  recordedDate  DateTime        @default(now())
   rule          Rule            @relation(fields: [ruleId], references: [id])
   ruleId        String
   rounds        Round[]
@@ -35,6 +41,8 @@ model Round {
   id            String  @id @default(uuid())
   gameId        String
   game          Game    @relation(fields: [gameId], references: [id])
+  oya           Player  @relation(fields: [oyaId], references: [id])
+  oyaId         String
   roundNumber   Int
   honba         Int
   kyoutaku      Int
@@ -43,13 +51,13 @@ model Round {
 
 model Result {
   id            String  @id @default(uuid())
-  playerId        String
-  player          Player  @relation(fields: [playerId], references: [id])
+  playerId      String
+  player        Player  @relation(fields: [playerId], references: [id])
   rank          Int
   rawScore      Int
   scaledScore   Int
-  gameId    String
-  game      Game        @relation(fields: [gameId], references: [id])
+  gameId        String
+  game          Game        @relation(fields: [gameId], references: [id])
 }
 
 model Data {

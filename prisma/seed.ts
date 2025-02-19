@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { rule } from "postcss";
 
 const prisma = new PrismaClient(); // PrismaClientのインスタンス生成
 
@@ -36,6 +37,11 @@ const main = async () => {
     const Rule = await prisma.rule.create({
         data: {
             name: "一局戦",
+            length: 1,
+            startScore: 25000,
+            returnScore: 30000,
+            uma1: 10,
+            uma2: 30,
         },
     });
     //試合データ
@@ -62,6 +68,7 @@ const main = async () => {
             honba: 0,
             kyoutaku: 0,
             gameId: Game1.id,
+            oyaId: p1.id,
         },
     });
     // const Round2 = await prisma.round.create({
@@ -132,7 +139,11 @@ const main = async () => {
             playerId: p1.id,
             rank: 1,
             rawScore: 37000,
-            scaledScore: 57000,
+            scaledScore:
+                37000 -
+                Rule.returnScore +
+                Rule.uma2 * 1000 +
+                (Rule.returnScore - Rule.startScore) * 4,
             gameId: Game1.id,
         },
     });
@@ -141,7 +152,10 @@ const main = async () => {
             playerId: p2.id,
             rank: 2,
             rawScore: 21000,
-            scaledScore: -19000,
+            scaledScore:
+                21000 -
+                Rule.returnScore +
+                (Rule.uma1 * 1000 - Rule.uma1 * 1000 - Rule.uma2 * 1000) / 3,
             gameId: Game1.id,
         },
     });
@@ -150,7 +164,10 @@ const main = async () => {
             playerId: p3.id,
             rank: 2,
             rawScore: 21000,
-            scaledScore: -19000,
+            scaledScore:
+                21000 -
+                Rule.returnScore +
+                (Rule.uma1 * 1000 - Rule.uma1 * 1000 - Rule.uma2 * 1000) / 3,
             gameId: Game1.id,
         },
     });
@@ -159,7 +176,10 @@ const main = async () => {
             playerId: p4.id,
             rank: 2,
             rawScore: 21000,
-            scaledScore: -19000,
+            scaledScore:
+                21000 -
+                Rule.returnScore +
+                (Rule.uma1 * 1000 - Rule.uma1 * 1000 - Rule.uma2 * 1000) / 3,
             gameId: Game1.id,
         },
     });
