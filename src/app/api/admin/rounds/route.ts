@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
-import { Data, Round } from "@prisma/client";
+import { Round } from "@prisma/client";
+import PlayerData from "@/app/_types/PlayerData";
 
 type RequestBody = {
     gameId: string;
@@ -8,7 +9,7 @@ type RequestBody = {
     honba: number;
     kyoutaku: number;
     oyaId: string;
-    playerData: Data[];
+    playerData: PlayerData[];
 };
 
 export const POST = async (req: NextRequest) => {
@@ -21,13 +22,12 @@ export const POST = async (req: NextRequest) => {
             oyaId,
             playerData,
         }: RequestBody = await req.json();
-        console.log(gameId, roundNumber, honba, kyoutaku, oyaId, playerData);
         const round: Round = await prisma.round.create({
             data: {
-                gameId,
                 roundNumber,
                 honba,
                 kyoutaku,
+                gameId,
                 oyaId,
             },
         });

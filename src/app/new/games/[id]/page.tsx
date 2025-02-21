@@ -1,6 +1,7 @@
 "use client";
 
 import IsLoading from "@/app/_components/IsLoading";
+import PlayerData from "@/app/_types/PlayerData";
 import RoundName from "@/app/utils/RoundName";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,13 +15,7 @@ type RoundData = {
     kyoutaku: number;
     oyaId: string;
 };
-type PlayerData = {
-    playerId: string;
-    roundId: string;
-    scoreChange: number;
-    state: string;
-    result: string;
-};
+
 type PlayerGameResponse = {
     id: string;
     gameId: string;
@@ -39,6 +34,8 @@ type GameApiResponse = {
     recordedDate: string;
     name: string;
     length: number;
+    startScore: number;
+    returnScore: number;
 };
 const Page: React.FC = () => {
     const { id } = useParams() as { id: string };
@@ -60,6 +57,13 @@ const Page: React.FC = () => {
     const [Houju, setHouju] = useState<string>("");
 
     const [game, setGame] = useState<GameApiResponse>();
+    const [nowScore, setNowScore] = useState<number[]>([0, 0, 0, 0]);
+    const [nowScoreChange, setNowScoreChange] = useState<number[]>([
+        0, 0, 0, 0,
+    ]);
+
+    const [nowHan, setNowHan] = useState<number>(1);
+    const [nowFu, setNowFu] = useState<number>(30);
     const router = useRouter();
     useEffect(() => {
         const fetchPlayerGame = async () => {
@@ -78,11 +82,12 @@ const Page: React.FC = () => {
                     .sort((a, b) => a.seet - b.seet)
                     .map((pg) => pg.playerId);
                 setPlayerIds(sortedPlayerIds);
+                setOyaId(sortedPlayerIds[roundNumber % 4]);
                 setNewPlayerData(
-                    sortedPlayerIds.map((playerId) => ({
+                    sortedPlayerIds.map((playerId, index) => ({
                         playerId,
                         roundId: "",
-                        scoreChange: 0,
+                        scoreChange: nowScoreChange[index],
                         state: "concealed",
                         result: "none",
                     })),
@@ -127,6 +132,7 @@ const Page: React.FC = () => {
                 });
                 const data = (await response.json()) as GameApiResponse;
                 setGame(data);
+                setNowScore(nowScore.map(() => data.startScore));
             } catch (error) {
                 console.error(error);
             } finally {
@@ -135,36 +141,6 @@ const Page: React.FC = () => {
         };
         fetchGame();
     }, [id]);
-    useEffect(() => {
-        if (playerIds.length > 0) {
-            const fetchOyaId = async () => {
-                try {
-                    setIsLoadingOyaId(true);
-                    const requestUrl = "/api/playergame";
-                    const response = await fetch(requestUrl, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
-                    const data =
-                        (await response.json()) as PlayerGameResponse[];
-                    const oya =
-                        data
-                            .filter((pg) => pg.gameId === id)
-                            .find((pg) => pg.seet === roundNumber % 4)
-                            ?.playerId || "";
-                    setOyaId(oya);
-                } catch (error) {
-                    console.error(error);
-                } finally {
-                    setIsLoadingOyaId(false);
-                }
-            };
-            fetchOyaId();
-        }
-    }, [oyaId]);
-
     const handleRadioChange = (row: number, col: number) => {
         const newPlayerDataCopy = [...newPlayerData];
         newPlayerDataCopy[row].state = ["riichi", "meld", "concealed"][col];
@@ -279,9 +255,13 @@ const Page: React.FC = () => {
                 setRoundNumber((roundNumber ? roundNumber : 0) + 1);
                 setKyoutaku(0);
             }
-
+            setOyaId(playerIds[roundNumber % 4]);
             setAgari("");
             setHouju("");
+            setNowScore(
+                nowScore.map((score, index) => score + nowScoreChange[index]),
+            );
+            setNowScoreChange([0, 0, 0, 0]);
         } catch (error) {
             console.error(error);
         } finally {
@@ -296,9 +276,9 @@ const Page: React.FC = () => {
     ) {
         return <IsLoading />;
     }
-    return (
-        <main>
-            {isSubmitting && (
+    if (isSubmitting) {
+        return (
+            <main>
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="flex items-center rounded-lg bg-white px-8 py-4 shadow-lg">
                         <FontAwesomeIcon
@@ -310,7 +290,11 @@ const Page: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            </main>
+        );
+    }
+    return (
+        <main>
             <h1>新規局面</h1>
             <div className="">{`${RoundName[roundNumber ? roundNumber : 0]}${honba ? honba : 0}本場,供託${(kyoutaku ? kyoutaku : 0) * 1000}点`}</div>
             <div className="">{`${id}`} </div>
@@ -318,26 +302,152 @@ const Page: React.FC = () => {
             <div className="">{`${game?.recordedDate}`} </div>
             <div className="">{`${oyaId}`} </div>
             <form onSubmit={handleSubmit}>
-                <table>
+                <div className="flex ">
+                    <div className="m-1">
+                        <label htmlFor="agari">和了者</label>
+                        <select
+                            name="agari"
+                            id="agari"
+                            value={Agari}
+                            onChange={(e) => updateAgari(e.target.value)}
+                        >
+                            <option value="">流局</option>
+                            {playerIds.map((playerId, index) => (
+                                <option key={index} value={playerId}>
+                                    {
+                                        allPlayer.find((p) => p.id === playerId)
+                                            ?.name
+                                    }
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {Agari !== "" && (
+                        <div className="m-1">
+                            <label htmlFor="houju">放銃者</label>
+                            <select
+                                name="houju"
+                                id="houju"
+                                value={Houju}
+                                onChange={(e) => updateHouju(e.target.value)}
+                            >
+                                <option value="">ツモ</option>
+                                {playerIds.map((playerId, index) => (
+                                    <option key={index} value={playerId}>
+                                        {
+                                            allPlayer.find(
+                                                (p) => p.id === playerId,
+                                            )?.name
+                                        }
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    {Agari !== "" && (
+                        <div className="m-1">
+                            <label htmlFor="">和了点数</label>
+                            <select
+                                name="han"
+                                id="han"
+                                onChange={(e) =>
+                                    setNowHan(Number(e.target.value))
+                                }
+                            >
+                                {[
+                                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+                                ].map((han) => (
+                                    <option key={han} value={han}>
+                                        {han}
+                                    </option>
+                                ))}
+                            </select>
+                            <label htmlFor="han" className="m-1">
+                                翻
+                            </label>
+                            <select name="fu" id="fu">
+                                {[
+                                    20, 25, 30, 40, 50, 60, 70, 80, 90, 100,
+                                    110, 120, 130, 140, 150, 160, 170, 180, 200,
+                                ]
+                                    // .filter((fu) =>
+                                    //     nowHan > 1
+                                    //         ? fu
+                                    //         : Houju === ""
+                                    //           ? fu > 20
+                                    //           : fu >= 30,
+                                    // )
+                                    .map((fu) => (
+                                        <option key={fu} value={fu}>
+                                            {fu}
+                                        </option>
+                                    ))}
+                            </select>
+                            <label htmlFor="hu" className="m-1">
+                                符
+                            </label>
+                        </div>
+                    )}
+                </div>
+                <table className="border-collapse border-2 border-black">
                     <thead>
                         <tr>
-                            <th>プレイヤー</th>
-                            <th>リーチ</th>
-                            <th>鳴き</th>
-                            <th>面前</th>
+                            <th
+                                rowSpan={2}
+                                className="border border-gray-400 px-3 py-2"
+                            >
+                                プレイヤー
+                            </th>
+                            <th
+                                rowSpan={2}
+                                className="border border-gray-400 px-3 py-2"
+                            >
+                                スコア
+                            </th>
+                            <th colSpan={3} className="border border-gray-400">
+                                状態
+                            </th>
+                            <th
+                                rowSpan={2}
+                                className="border border-gray-400 px-3 py-2"
+                            >
+                                スコア変動
+                            </th>
+                            {Agari === "" && (
+                                <th
+                                    rowSpan={2}
+                                    className="border border-gray-400 px-3 py-2"
+                                >
+                                    聴牌
+                                </th>
+                            )}
+                        </tr>
+                        <tr>
+                            <th className="w-14 border border-gray-400">
+                                リーチ
+                            </th>
+                            <th className="w-14 border border-gray-400">
+                                鳴き
+                            </th>
+                            <th className="w-14 border border-gray-400">
+                                面前
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         {newPlayerData.length > 0 &&
                             newPlayerData.map((player, row) => (
                                 <tr key={row}>
-                                    <td>{`${
+                                    <th className="border border-gray-400 px-3 py-2">{`${
                                         allPlayer.find(
                                             (p) => p.id === player.playerId,
                                         )?.name
-                                    }`}</td>
+                                    }`}</th>
+                                    <td className="border border-gray-400 px-3 py-2 text-right">
+                                        {nowScore[row]}
+                                    </td>
                                     {[0, 1, 2].map((col) => (
-                                        <td key={col}>
+                                        <td className="text-center" key={col}>
                                             <input
                                                 type="radio"
                                                 name={`player-${row}`}
@@ -355,65 +465,15 @@ const Page: React.FC = () => {
                                             />
                                         </td>
                                     ))}
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
+                                    <td className="border border-gray-400 px-3 py-2 text-right">
+                                        {nowScoreChange[row] +
+                                            (player.state === "riichi"
+                                                ? -1000
+                                                : 0)}
+                                    </td>
 
-                <div className="">
-                    <label htmlFor="agari">和了者</label>
-                    <select
-                        name="agari"
-                        id="agari"
-                        value={Agari}
-                        onChange={(e) => updateAgari(e.target.value)}
-                    >
-                        <option value="">流局</option>
-                        {playerIds.map((playerId, index) => (
-                            <option key={index} value={playerId}>
-                                {allPlayer.find((p) => p.id === playerId)?.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                {Agari !== "" ? (
-                    <div className="">
-                        <label htmlFor="houju">放銃者</label>
-                        <select
-                            name="houju"
-                            id="houju"
-                            value={Houju}
-                            onChange={(e) => updateHouju(e.target.value)}
-                        >
-                            <option value="">ツモ</option>
-                            {playerIds.map((playerId, index) => (
-                                <option key={index} value={playerId}>
-                                    {
-                                        allPlayer.find((p) => p.id === playerId)
-                                            ?.name
-                                    }
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                ) : (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>プレイヤー</th>
-                                <th>テンパイ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {newPlayerData.length > 0 &&
-                                newPlayerData.map((player, row) => (
-                                    <tr key={row}>
-                                        <td>{`${
-                                            allPlayer.find(
-                                                (p) => p.id === player.playerId,
-                                            )?.name
-                                        }`}</td>
-                                        <td>
+                                    {Agari === "" && (
+                                        <td className="border border-gray-400 px-3 py-2">
                                             <input
                                                 type="checkbox"
                                                 name={`checkbox-${row}`}
@@ -428,18 +488,21 @@ const Page: React.FC = () => {
                                                 }
                                             />
                                         </td>
-                                    </tr>
-                                ))}
-                        </tbody>
-                    </table>
-                )}
-                <button
-                    type="submit"
-                    disabled={Agari === Houju && Agari !== ""}
-                    className="rounded-lg  bg-blue-300 px-3 py-2 hover:bg-blue-400 disabled:cursor-not-allowed"
-                >
-                    Submit
-                </button>
+                                    )}
+                                </tr>
+                            ))}
+                    </tbody>
+                </table>
+
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={Agari === Houju && Agari !== ""}
+                        className="rounded-lg  bg-blue-300 px-3 py-1 hover:bg-blue-400 disabled:cursor-not-allowed"
+                    >
+                        次へ
+                    </button>
+                </div>
             </form>
         </main>
     );

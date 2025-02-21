@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { rule } from "postcss";
 
 const prisma = new PrismaClient(); // PrismaClientのインスタンス生成
 

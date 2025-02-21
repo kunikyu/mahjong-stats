@@ -29,6 +29,8 @@ export const GET = async (req: NextRequest, routeParams: RouteParams) => {
             select: {
                 name: true,
                 length: true,
+                startScore: true,
+                returnScore: true,
             },
         });
 
