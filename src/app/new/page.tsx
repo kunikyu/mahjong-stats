@@ -14,6 +14,11 @@ const Page: React.FC = () => {
                     新規プレイヤーの登録
                 </Link>
             </div>
+            <div className="m-5">
+                <Link href="new/rule" className="bg-pink-300 p-2">
+                    ルールの登録
+                </Link>
+            </div>
         </main>
     );
 };

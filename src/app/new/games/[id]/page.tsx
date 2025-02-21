@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
-
+import dayjs from "dayjs";
 type PlayerGameResponse = {
     id: string;
     gameId: string;
@@ -54,7 +54,7 @@ const Page: React.FC = () => {
     const [nowScoreChange, setNowScoreChange] = useState<number[]>([0, 0, 0, 0]);
 
     const [nowHan, setNowHan] = useState<number>(1);
-    const [nowFu, setNowFu] = useState<number>(30);
+    const [nowFu, setNowFu] = useState<number>(20);
 
     const [riichicount, setRiichiCount] = useState<number>(0);
     const router = useRouter();
@@ -408,7 +408,7 @@ const Page: React.FC = () => {
                 setRoundNumber((roundNumber ? roundNumber : 0) + 1);
                 setKyoutaku(0);
             }
-            setOyaId(playerIds[roundNumber % 4]);
+            setOyaId(playerIds[(roundNumber + 1) % 4]);
             setAgari("");
             setHouju("");
             setNowScore(
@@ -423,6 +423,15 @@ const Page: React.FC = () => {
                 ),
             );
             setNowScoreChange([0, 0, 0, 0]);
+            setNewPlayerData(
+                playerIds.map((playerId, index) => ({
+                    playerId,
+                    roundId: "",
+                    scoreChange: 0,
+                    state: "concealed",
+                    result: "none",
+                })),
+            );
         } catch (error) {
             console.error(error);
         } finally {
@@ -447,13 +456,14 @@ const Page: React.FC = () => {
             </main>
         );
     }
+    const dtFmt = "YYYY-MM-DD HH:mm";
+
     return (
         <main>
-            <h1>新規局面</h1>
+            <div className="font-bold">新規局面</div>
             <div className="">{`${RoundName[roundNumber ? roundNumber : 0]}${honba ? honba : 0}本場,供託${(kyoutaku ? kyoutaku : 0) * 1000}点`}</div>
-            <div className="">{`${id}`} </div>
-            <div className="">{`${game?.name}`} </div>
-            <div className="">{`${game?.recordedDate}`} </div>
+            <div className="">ルール:{`${game?.name}`} </div>
+            <div>{dayjs(game?.recordedDate).format(dtFmt)}</div>
             <form onSubmit={handleSubmit}>
                 <div className="flex ">
                     <div className="m-1">

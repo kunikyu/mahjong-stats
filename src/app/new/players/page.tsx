@@ -60,7 +60,6 @@ const Page: React.FC = () => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        alert(`登録された名前: ${newName}`);
 
         setIsSubmitting(true);
         try {
@@ -120,9 +119,7 @@ const Page: React.FC = () => {
                             icon={faSpinner}
                             className="mr-2 animate-spin text-gray-500"
                         />
-                        <div className="flex items-center text-gray-500">
-                            処理中...
-                        </div>
+                        <div className="flex items-center text-gray-500">処理中...</div>
                     </div>
                 </div>
             )}
@@ -146,9 +143,7 @@ const Page: React.FC = () => {
                         required
                     />
                     {siyouzumi && (
-                        <div className="text-red-500">
-                            その名前は既に登録されています
-                        </div>
+                        <div className="text-red-500">その名前は既に登録されています</div>
                     )}
                     {mojisuu && (
                         <div className="text-red-500">
