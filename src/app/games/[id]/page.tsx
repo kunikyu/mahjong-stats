@@ -2,7 +2,7 @@
 import React from "react";
 import RoundSummary from "@/app/_components/RoundSummary";
 import { useParams } from "next/navigation";
-import { Game, Player, Round } from "@prisma/client";
+import { Game, Player, Round } from "@/app/_types/APIresponse";
 
 type GameApiResponse = {
     id: string;
@@ -23,7 +23,7 @@ const Page: React.FC = () => {
         fetch("/api/rounds")
             .then((res) => res.json())
             .then((data) => setRounds(data));
-        fetch("/api/players")
+        fetch(`/api/games/${id}/players`)
             .then((res) => res.json())
             .then((data) => setPlayers(data));
     }, [id]);
@@ -35,23 +35,15 @@ const Page: React.FC = () => {
                     <div className="">
                         {
                             <div className="">
-                                <div className="text-lg font-bold">
-                                    {game.name}
-                                </div>
-                                <div className="text-lg font-bold">
-                                    記録：{game.recordedDate}
-                                </div>
+                                <div className="text-lg font-bold">{game.name}</div>
+                                <div className="text-lg font-bold">記録：{game.recordedDate}</div>
                             </div>
                         }
                     </div>
                     <div>
                         {rounds.map((round) =>
                             round.gameId === game.id ? (
-                                <RoundSummary
-                                    key={round.id}
-                                    round={round}
-                                    players={players}
-                                />
+                                <RoundSummary key={round.id} round={round} players={players} />
                             ) : null,
                         )}
                     </div>

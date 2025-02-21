@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
-import { Player } from "@prisma/client";
+import { Player } from "@/app/_types/APIresponse";
 
 type RequestBody = {
     name: string;
@@ -17,9 +17,6 @@ export const POST = async (req: NextRequest) => {
         return NextResponse.json(rule);
     } catch (error) {
         console.error(error);
-        return NextResponse.json(
-            { error: "カテゴリの作成に失敗しました" },
-            { status: 500 },
-        );
+        return NextResponse.json({ error: "カテゴリの作成に失敗しました" }, { status: 500 });
     }
 };

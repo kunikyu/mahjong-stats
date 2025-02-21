@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
-import { Round } from "@prisma/client";
+import { Round } from "@/app/_types/APIresponse";
 import PlayerData from "@/app/_types/PlayerData";
 
 type RequestBody = {
@@ -14,14 +14,8 @@ type RequestBody = {
 
 export const POST = async (req: NextRequest) => {
     try {
-        const {
-            gameId,
-            roundNumber,
-            honba,
-            kyoutaku,
-            oyaId,
-            playerData,
-        }: RequestBody = await req.json();
+        const { gameId, roundNumber, honba, kyoutaku, oyaId, playerData }: RequestBody =
+            await req.json();
         const round: Round = await prisma.round.create({
             data: {
                 roundNumber,
@@ -42,9 +36,6 @@ export const POST = async (req: NextRequest) => {
         return NextResponse.json(round);
     } catch (error) {
         console.error("Error creating round:", error);
-        return NextResponse.json(
-            { error: "ラウンドの作成に失敗しました" },
-            { status: 500 },
-        );
+        return NextResponse.json({ error: "ラウンドの作成に失敗しました" }, { status: 500 });
     }
 };

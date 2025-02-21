@@ -3,7 +3,7 @@
 import React from "react";
 
 import Link from "next/link";
-import { Game } from "@prisma/client";
+import { Game } from "@/app/_types/APIresponse";
 
 type Props = {
     game: Game;

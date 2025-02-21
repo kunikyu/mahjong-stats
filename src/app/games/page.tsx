@@ -3,7 +3,7 @@ import React from "react";
 
 import GameSummary from "@/app/_components/GameSummary";
 
-import { Game, Rule } from "@prisma/client";
+import { Game, Rule } from "@/app/_types/APIresponse";
 
 const Page: React.FC = () => {
     // /api/gamesで取得したデータを表示する
