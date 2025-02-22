@@ -3,20 +3,25 @@
 import React from "react";
 
 import Link from "next/link";
-import { Game } from "@/app/_types/APIresponse";
+import { Game, PlayerGame, Rule } from "@/app/_types/APIresponse";
 import dayjs from "dayjs";
 
 type Props = {
     game: Game;
+    rule: Rule;
+    players: PlayerGame[];
 };
 
-const GameSummary: React.FC<Props> = ({ game }) => {
+const GameSummary: React.FC<Props> = ({ game, rule, players }) => {
     const dtFmt = "YYYY-MM-DD HH:mm";
     return (
         <Link href={`/games/${game.id}`}>
             <div className="my-2 border-2 border-gray-500 p-4">
                 <div>Recorded Date: {dayjs(game.recordedDate).format(dtFmt)}</div>
-                <div>Rule: {game.ruleId}</div>
+                <div>Rule: {rule.name}</div>
+                {players.map((player) => {
+                    return <div key={player.id}>{player.playerName}</div>;
+                })}
             </div>
         </Link>
     );
