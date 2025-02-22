@@ -2,7 +2,7 @@
 import React from "react";
 import RoundSummary from "@/app/_components/RoundSummary";
 import { useParams } from "next/navigation";
-import { Game, Player, PlayerGame, Round } from "@/app/_types/APIresponse";
+import { PlayerGamewithName, Round } from "@/app/_types/APIresponse";
 import dayjs from "dayjs";
 
 type GameApiResponse = {
@@ -15,7 +15,7 @@ type GameApiResponse = {
 const Page: React.FC = () => {
     const [game, setGame] = React.useState<GameApiResponse | null>(null);
     const [rounds, setRounds] = React.useState<Round[]>([]);
-    const [players, setPlayers] = React.useState<PlayerGame[]>([]);
+    const [players, setPlayers] = React.useState<PlayerGamewithName[]>([]);
     const { id } = useParams() as { id: string };
     React.useEffect(() => {
         fetch(`/api/games/${id}`)

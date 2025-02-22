@@ -3,11 +3,11 @@ import React, { useEffect } from "react";
 
 import Link from "next/link";
 import RoundName from "@/app/utils/RoundName";
-import { Player, PlayerGame, Round } from "@/app/_types/APIresponse";
+import { Player, PlayerGamewithName, Round } from "@/app/_types/APIresponse";
 
 type Props = {
     round: Round;
-    players: PlayerGame[];
+    players: PlayerGamewithName[];
 };
 
 const RoundSummary: React.FC<Props> = ({ round, players }) => {

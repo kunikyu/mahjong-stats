@@ -3,13 +3,13 @@
 import React from "react";
 
 import Link from "next/link";
-import { Game, PlayerGame, Rule } from "@/app/_types/APIresponse";
+import { Game, PlayerGamewithName, Rule } from "@/app/_types/APIresponse";
 import dayjs from "dayjs";
 
 type Props = {
     game: Game;
     rule: Rule;
-    players: PlayerGame[];
+    players: PlayerGamewithName[];
 };
 
 const GameSummary: React.FC<Props> = ({ game, rule, players }) => {

@@ -10,6 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import dayjs from "dayjs";
+import { Rule } from "@/app/_types/APIresponse";
 type PlayerGameResponse = {
     id: string;
     gameId: string;
@@ -395,20 +396,23 @@ const Page: React.FC = () => {
                 setHonba((honba ? honba : 0) + 1);
                 if (newPlayerData.find((pd) => pd.playerId === oyaId)?.result !== "tenpai") {
                     if (roundNumber + 1 === game?.length) {
+                        postResult();
                         router.replace(`/games/${id}`);
                         console.log("game end");
                     }
                     setRoundNumber((roundNumber ? roundNumber : 0) + 1);
+                    setOyaId(playerIds[(roundNumber + 1) % 4]);
                 }
             } else {
                 if (roundNumber + 1 === game?.length) {
+                    postResult();
                     router.replace(`/games/${id}`);
                 }
                 setHonba(0);
                 setRoundNumber((roundNumber ? roundNumber : 0) + 1);
                 setKyoutaku(0);
+                setOyaId(playerIds[(roundNumber + 1) % 4]);
             }
-            setOyaId(playerIds[(roundNumber + 1) % 4]);
             setAgari("");
             setHouju("");
             setNowScore(
@@ -436,6 +440,92 @@ const Page: React.FC = () => {
             console.error(error);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+    //ruleを取得するAPI
+    const [rule, setRule] = useState<Rule>();
+    useEffect(() => {
+        const fetchRule = async () => {
+            try {
+                const requestUrl = `/api/rules/${game?.ruleId}`;
+                const response = await fetch(requestUrl, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                const data = (await response.json()) as Rule;
+                setRule(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchRule();
+    }, [game]);
+
+    const postResult = async () => {
+        try {
+            const requestUrl = "/api/admin/result";
+            const scaledtmp = rule
+                ? [
+                      rule.uma2 +
+                          (4 * (rule.returnScore - rule.startScore)) / 1000 -
+                          rule.returnScore / 1000,
+                      rule.uma1 - rule.returnScore / 1000,
+                      -rule.uma1 - rule.returnScore / 1000,
+                      -rule.uma2 - rule.returnScore / 1000,
+                  ]
+                : [0, 0, 0, 0];
+            const rank = [0, 0, 0, 0];
+            nowScore
+                .map(
+                    (score, index) =>
+                        score +
+                        nowScoreChange[index] +
+                        (newPlayerData[index].state === "riichi" ? -1000 : 0) +
+                        (newPlayerData[index].playerId === Agari
+                            ? riichicount * 1000 + kyoutaku * 1000
+                            : 0),
+                )
+                .map((score, index) => ({
+                    score,
+                    index,
+                }))
+                .sort((a, b) => b.score - a.score)
+                .forEach((item, index) => {
+                    rank[item.index] = index;
+                });
+            const requestBody = [0, 1, 2, 3].map((index) => {
+                return {
+                    playerId: newPlayerData[index].playerId,
+                    gameId: id,
+                    rank: rank[index],
+                    rawScore: nowScore.map(
+                        (score, index) =>
+                            score +
+                            nowScoreChange[index] +
+                            (newPlayerData[index].state === "riichi" ? -1000 : 0) +
+                            (newPlayerData[index].playerId === Agari
+                                ? riichicount * 1000 + kyoutaku * 1000
+                                : 0),
+                    )[index],
+                    scaledScore: nowScore[index] / 1000 + scaledtmp[rank[index]],
+                };
+            });
+            const response = await fetch(requestUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestBody),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data);
+            }
+            console.log(data);
+        } catch (error) {
+            console.error(error);
         }
     };
     if (IsLoadingPlayer || IsLoadingGame || IsLoadingPlayerGame || IsLoadingOyaId) {

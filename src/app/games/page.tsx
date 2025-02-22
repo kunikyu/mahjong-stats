@@ -3,13 +3,13 @@ import React from "react";
 
 import GameSummary from "@/app/_components/GameSummary";
 
-import { Game, PlayerGame, Rule } from "@/app/_types/APIresponse";
+import { Game, PlayerGamewithName, Rule } from "@/app/_types/APIresponse";
 
 const Page: React.FC = () => {
     // /api/gamesで取得したデータを表示する
     const [games, setGames] = React.useState<Game[]>([]);
     const [rules, setRules] = React.useState<Rule[]>([]);
-    const [playerGames, setPlayerGames] = React.useState<PlayerGame[]>([]);
+    const [playerGames, setPlayerGames] = React.useState<PlayerGamewithName[]>([]);
     React.useEffect(() => {
         fetch("/api/games")
             .then((res) => res.json())
@@ -33,7 +33,7 @@ const Page: React.FC = () => {
                             <GameSummary
                                 key={game.id}
                                 game={game}
-                                rule={rules.find((rule) => rule.id === game.ruleId)}
+                                rule={rules.find((rule) => rule.id === game.ruleId) as Rule}
                                 players={playerGames.filter((pd) => pd.gameId === game.id)}
                             />
                         ),
