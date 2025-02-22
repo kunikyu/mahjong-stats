@@ -9,6 +9,13 @@ export type PlayerGame = {
     playerId: string;
     gameId: string;
 };
+export type PlayerGamewithName = {
+    id: string;
+    seet: number;
+    playerId: string;
+    gameId: string;
+    playerName: string;
+};
 export type Round = {
     id: string;
     gameId: string;
