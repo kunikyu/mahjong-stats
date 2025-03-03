@@ -15,7 +15,7 @@ jobs:
         steps:
             - name: Send HTTP GET request
               run: |
-                  curl -X GET "https://mahjong-stats-kunikyu.vercel.app/" -v --fail || exit 1
+                  curl -X GET "https://mahjong-stats-kunikyu.vercel.app/games" -v --fail || exit 1
 
             - name: Log request time
               run: |
