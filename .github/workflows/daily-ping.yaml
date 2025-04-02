@@ -13,9 +13,9 @@ jobs:
             TZ: "Asia/Tokyo"
 
         steps:
-            - name: Send HTTP GET request
+            - name: Send HTTP GET request and wait for response
               run: |
-                  curl -X GET "https://mahjong-stats-kunikyu.vercel.app/" -v --fail || exit 1
+                  curl -X GET "https://mahjong-stats-kunikyu.vercel.app/" -v --fail --max-time 30 || exit 1
 
             - name: Log request time
               run: |
